@@ -25,7 +25,7 @@ const argv = yargs(process.argv)
   const total = argv["end-block"] - argv["start-block"] + 1;
   for (let i = 0; i < total; i++) {
     const height = argv["start-block"] + i;
-    console.log(`${i + 1}/${total} [${((100 * (i + 1)) / total).toFixed(2)}%]`);
+    console.log(`height: ${height} [${i + 1}/${total} ${((100 * (i + 1)) / total).toFixed(2)}%]`);
     parseTxResponses(
       await fetchTxResponsesInBlock(height, argv["grpc-gateway-url"]),
       relayerProfiles
