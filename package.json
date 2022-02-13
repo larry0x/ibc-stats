@@ -1,0 +1,21 @@
+{
+  "name": "terra-ibc-relayer-study",
+  "version": "0.1.0",
+  "author": "larry <contact@larry.engineer>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "axios": "^0.25.0",
+    "ts-node": "^10.5.0",
+    "yargs": "^17.3.1"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.11.0",
+    "@typescript-eslint/parser": "^5.11.0",
+    "eslint": "^8.9.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.5"
+  }
+}

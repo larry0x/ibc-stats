@@ -1,0 +1,30 @@
+{
+  "terra1jhtgfp42f2sz4d047sehpjfnqyj2v6cq68eda5": {
+    "numOutboundPackets": 5,
+    "numInboundPackets": 12,
+    "feesPaid": {
+      "ukrw": 1063010510
+    }
+  },
+  "terra148euq27wv05cgs5s5fwt227gvzppa2ghjxrd9d": {
+    "numOutboundPackets": 11,
+    "numInboundPackets": 24,
+    "feesPaid": {
+      "ukrw": 1313111250
+    }
+  },
+  "terra1cqh8pa2mxq2pt3qmlsmfh82tpdfslnvm4w56qg": {
+    "numOutboundPackets": 14,
+    "numInboundPackets": 4,
+    "feesPaid": {
+      "uluna": 41685
+    }
+  },
+  "terra1yvejj22t78s2vfk7slty2d7fs5lkc8rn40tj8u": {
+    "numOutboundPackets": 1,
+    "numInboundPackets": 0,
+    "feesPaid": {
+      "ukrw": 75284330
+    }
+  }
+}
