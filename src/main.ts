@@ -17,6 +17,11 @@ const argv = yargs(process.argv)
       type: "string",
       demandOption: true,
     },
+    "include-redundant": {
+      type: "boolean",
+      demandOption: false,
+      default: false,
+    },
   })
   .parseSync();
 
@@ -28,7 +33,8 @@ const argv = yargs(process.argv)
     console.log(`height: ${height} [${i + 1}/${total} ${((100 * (i + 1)) / total).toFixed(2)}%]`);
     parseTxResponses(
       await fetchTxResponsesInBlock(height, argv["grpc-gateway-url"]),
-      relayerProfiles
+      relayerProfiles,
+      argv["include-redundant"]
     );
   }
 

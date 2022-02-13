@@ -21,23 +21,32 @@ export async function fetchTxResponsesInBlock(
   return txResponses;
 }
 
-export function parseTxResponse(txResponse: grpc.TxResponse, relayerProfiles: RelayerProfiles) {
+export function parseTxResponse(
+  txResponse: grpc.TxResponse,
+  relayerProfiles: RelayerProfiles,
+  includeRedundant = false
+) {
   const signers: string[] = [];
   let msgIndex = 0;
   for (const msg of txResponse.tx.body.messages) {
     // For an inbound packet, we make sure it is non-redundant by checking whether it emits a
     // `write_acknowledgement` event
     if (msg["@type"] === "/ibc.core.channel.v1.MsgRecvPacket") {
+      let isNonRedundant = false;
       const log = txResponse.logs.find((log) => log.msg_index === msgIndex);
       if (log) {
         const event = log.events.find((event) => event.type === "write_acknowledgement");
         if (event) {
-          const signer = (msg as grpc.IBCMsg).signer;
-          if (!signers.includes(signer)) {
-            signers.push(signer);
-          }
-          relayerProfiles.incrementInboundPacketCount(signer);
+          isNonRedundant = true;
         }
+      }
+
+      if (includeRedundant || isNonRedundant) {
+        const signer = (msg as grpc.IBCMsg).signer;
+        if (!signers.includes(signer)) {
+          signers.push(signer);
+        }
+        relayerProfiles.incrementInboundPacketCount(signer);
       }
     }
     // For an outbound package, we make sure it is non-redundant by checking whether is emits more
@@ -45,15 +54,20 @@ export function parseTxResponse(txResponse: grpc.TxResponse, relayerProfiles: Re
     // `message`. Non-redundant ones additionally emits one or more events indicating the action
     // being acknowledged, such as `fungible_token_packet` for ICS20 packets
     else if (msg["@type"] === "/ibc.core.channel.v1.MsgAcknowledgement") {
+      let isNonRedundant = false;
       const log = txResponse.logs.find((log) => log.msg_index === msgIndex);
       if (log) {
         if (log.events.length > 2) {
-          const signer = (msg as grpc.IBCMsg).signer;
-          if (!signers.includes(signer)) {
-            signers.push(signer);
-          }
-          relayerProfiles.incrementOutboundPacketCount(signer);
+          isNonRedundant = true;
         }
+      }
+
+      if (includeRedundant || isNonRedundant) {
+        const signer = (msg as grpc.IBCMsg).signer;
+        if (!signers.includes(signer)) {
+          signers.push(signer);
+        }
+        relayerProfiles.incrementOutboundPacketCount(signer);
       }
     }
     msgIndex += 1;
@@ -78,8 +92,12 @@ export function parseTxResponse(txResponse: grpc.TxResponse, relayerProfiles: Re
   }
 }
 
-export function parseTxResponses(txResponses: grpc.TxResponse[], relayerProfiles: RelayerProfiles) {
+export function parseTxResponses(
+  txResponses: grpc.TxResponse[],
+  relayerProfiles: RelayerProfiles,
+  includeRedundant = false
+) {
   for (const txResponse of txResponses) {
-    parseTxResponse(txResponse, relayerProfiles);
+    parseTxResponse(txResponse, relayerProfiles, includeRedundant);
   }
 }
