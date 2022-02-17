@@ -33,6 +33,7 @@ export interface Event {
 }
 
 export interface TxResponse {
+  height: string;
   txhash: string;
   tx: Tx;
   logs: {
