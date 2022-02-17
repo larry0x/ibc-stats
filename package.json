@@ -1,7 +1,7 @@
 {
-  "name": "terra-ibc-relayer-study",
+  "name": "ibc-msg-parser",
   "version": "0.1.0",
-  "author": "larry <contact@larry.engineer>",
+  "author": "larry <gm@larry.engineer>",
   "license": "UNLICENSED",
   "dependencies": {
     "axios": "^0.25.0",
