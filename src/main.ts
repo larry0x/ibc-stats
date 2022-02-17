@@ -1,44 +1,35 @@
-import * as path from "path";
 import yargs from "yargs/yargs";
-import { fetchTxResponsesInBlock, parseTxResponses } from "./parse";
-import { RelayerProfiles } from "./profile";
+import { hideBin } from "yargs/helpers";
 
-const argv = yargs(process.argv)
-  .options({
-    "start-block": {
-      type: "number",
-      demandOption: true,
-    },
-    "end-block": {
-      type: "number",
-      demandOption: true,
-    },
-    "grpc-gateway-url": {
-      type: "string",
-      demandOption: true,
-    },
-    "include-redundant": {
-      type: "boolean",
-      demandOption: false,
-      default: false,
-    },
-  })
-  .parseSync();
+import * as db from "./db";
 
 (async function () {
-  const relayerProfiles = new RelayerProfiles();
-  const total = argv["end-block"] - argv["start-block"] + 1;
-  for (let i = 0; i < total; i++) {
-    const height = argv["start-block"] + i;
-    console.log(`height: ${height} [${i + 1}/${total} ${((100 * (i + 1)) / total).toFixed(2)}%]`);
-    parseTxResponses(
-      await fetchTxResponsesInBlock(height, argv["grpc-gateway-url"]),
-      relayerProfiles,
-      argv["include-redundant"]
-    );
-  }
-
-  const filePath = path.join(__dirname, "../data/result.json");
-  relayerProfiles.writeToFile(filePath);
-  console.log(`done! result wrote to ${filePath}`);
+  await yargs(hideBin(process.argv))
+    .command(
+      "fetch-txs",
+      "Fetch IBC relaying-related txs from a remote node and dump in a local DB",
+      (yargs) => {
+        return yargs
+          .option("end-height", {
+            type: "number",
+            demandOption: true,
+          })
+          .option("start-height", {
+            type: "number",
+            demandOption: false,
+          })
+          .option("grpc-gateway-url", {
+            type: "string",
+            demandOption: false,
+          });
+      },
+      (argv) =>
+        db
+          .fetchIbcPacketTxs(argv["end-height"], argv["start-height"], argv["grpc-gateway-url"])
+          .catch((err) => {
+            console.log(err);
+            process.exit(1);
+          })
+    )
+    .parse();
 })();
