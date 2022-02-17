@@ -34,7 +34,12 @@ function containsIbcPackets(txResponse: TxResponse): boolean {
     .includes(true);
 }
 
-async function fetchTxs(col: Collection<TxResponse>, endHeight: number, startHeight?: number, grpcGatewayUrl?: string) {
+async function fetchTxs(
+  col: Collection<TxResponse>,
+  endHeight: number,
+  startHeight?: number,
+  grpcGatewayUrl?: string
+) {
   // If start height is given, we start from it
   // If not, fetch the last tx in the database, and start from that block height + 1
   // If no tx exists, start from default
