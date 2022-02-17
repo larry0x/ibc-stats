@@ -5,14 +5,14 @@ import { TxResponse, GRPCTxsResponse } from "./grpc_types";
 
 const DEFAULT_MONGODB_URL = "mongodb://localhost:27017";
 const DEFAULT_LAST_HEIGHT = 4724000; // the last block of col-4
-const GRPC_GATEWAY_URL = "https://lcd.terra.dev";
+const DEFAULT_GRPC_GATEWAY_URL = "https://lcd.terra.dev";
 
-async function fetchTxsInBlock(height: number): Promise<TxResponse[]> {
+async function fetchTxsInBlock(height: number, grpcGatewayUrl: string): Promise<TxResponse[]> {
   let txResponses: TxResponse[] = [];
   while (true) {
     const grpcTxsResponse = (
       await axios.get<GRPCTxsResponse>(
-        `${GRPC_GATEWAY_URL}/cosmos/tx/v1beta1/txs?events=tx.height=${height}&pagination.offset=${txResponses.length}`
+        `${grpcGatewayUrl}/cosmos/tx/v1beta1/txs?events=tx.height=${height}&pagination.offset=${txResponses.length}`
       )
     ).data;
     txResponses = txResponses.concat(grpcTxsResponse.tx_responses);
@@ -34,7 +34,7 @@ function containsIbcPackets(txResponse: TxResponse): boolean {
     .includes(true);
 }
 
-async function fetchTxs(col: Collection<TxResponse>, endHeight: number, startHeight?: number) {
+async function fetchTxs(col: Collection<TxResponse>, endHeight: number, startHeight?: number, grpcGatewayUrl?: string) {
   // If start height is given, we start from it
   // If not, fetch the last tx in the database, and start from that block height + 1
   // If no tx exists, start from default
@@ -45,6 +45,7 @@ async function fetchTxs(col: Collection<TxResponse>, endHeight: number, startHei
         return lastTx ? parseInt(lastTx.height) : DEFAULT_LAST_HEIGHT;
       })();
 
+  const url = grpcGatewayUrl ? grpcGatewayUrl : DEFAULT_GRPC_GATEWAY_URL;
   const total = endHeight - lastHeight;
   for (let i = 1; i <= total; i++) {
     const height = lastHeight + i;
@@ -52,7 +53,7 @@ async function fetchTxs(col: Collection<TxResponse>, endHeight: number, startHei
     process.stdout.write(`[${i}/${total} (${percentage}%)] fetching txs at height ${height}... `);
 
     // Download all txs at the height
-    const allTxs = await fetchTxsInBlock(height);
+    const allTxs = await fetchTxsInBlock(height, url);
 
     // Retain only txs that contain `MsgRecvPacket` and `MsgAcknowledgement` messages
     const txs = allTxs.filter((tx) => containsIbcPackets(tx));
@@ -69,13 +70,17 @@ async function fetchTxs(col: Collection<TxResponse>, endHeight: number, startHei
 (async function () {
   const argv = yargs(process.argv)
     .options({
+      "end-height": {
+        type: "number",
+        demandOption: true,
+      },
       "start-height": {
         type: "number",
         demandOption: false,
       },
-      "end-height": {
-        type: "number",
-        demandOption: true,
+      "grpc-gateway-url": {
+        type: "string",
+        demandOption: false,
       },
     })
     .parseSync();
@@ -97,7 +102,7 @@ async function fetchTxs(col: Collection<TxResponse>, endHeight: number, startHei
   console.log("done!");
 
   try {
-    await fetchTxs(col, argv["end-height"], argv["start-height"]);
+    await fetchTxs(col, argv["end-height"], argv["start-height"], argv["grpc-gateway-url"]);
   } catch (err) {
     console.log("unrecoverable error!", err);
   } finally {
