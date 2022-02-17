@@ -32,17 +32,19 @@ export interface Event {
   attribute: Attribute[];
 }
 
+export interface Log {
+  msg_index: number;
+  events: Event[];
+}
+
 export interface TxResponse {
   height: string;
   txhash: string;
   tx: Tx;
-  logs: {
-    msg_index: number;
-    events: Event[];
-  }[];
+  logs: Log[];
 }
 
-export interface GRPCTxsResponse {
+export interface TxsResponse {
   tx_responses: TxResponse[];
   pagination: { total: string };
 }

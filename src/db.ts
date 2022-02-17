@@ -1,6 +1,6 @@
 import axios from "axios";
 import { MongoClient } from "mongodb";
-import { TxResponse, GRPCTxsResponse } from "./grpc_types";
+import * as types from "./grpc_types";
 
 const DEFAULT_MONGODB_URL = "mongodb://localhost:27017";
 const DEFAULT_LAST_HEIGHT = 4724000; // the last block of col-4
@@ -9,11 +9,14 @@ const DEFAULT_GRPC_GATEWAY_URL = "https://lcd.terra.dev";
 /**
  * @notice Fetch all transactions in a block
  */
-async function fetchTxsInBlock(height: number, grpcGatewayUrl: string): Promise<TxResponse[]> {
-  let txResponses: TxResponse[] = [];
+async function fetchTxsInBlock(
+  height: number,
+  grpcGatewayUrl: string
+): Promise<types.TxResponse[]> {
+  let txResponses: types.TxResponse[] = [];
   while (true) {
     const grpcTxsResponse = (
-      await axios.get<GRPCTxsResponse>(
+      await axios.get<types.TxsResponse>(
         `${grpcGatewayUrl}/cosmos/tx/v1beta1/txs?events=tx.height=${height}&pagination.offset=${txResponses.length}`
       )
     ).data;
@@ -29,7 +32,7 @@ async function fetchTxsInBlock(height: number, grpcGatewayUrl: string): Promise<
  * @notice Return `true` if the transaction contains at least one `MsgRecvPacket` or `MsgAcknowledgement`;
  * return `false` if otherwise
  */
-function containsIbcPackets(txResponse: TxResponse): boolean {
+function containsIbcPackets(txResponse: types.TxResponse): boolean {
   return txResponse.tx.body.messages
     .map((msg) => {
       return [
@@ -61,7 +64,7 @@ export async function fetchIbcPacketTxs(
   console.log("done!");
 
   process.stdout.write("creating collections...");
-  const col = db.collection<TxResponse>("txs");
+  const col = db.collection<types.TxResponse>("txs");
   console.log("done!");
 
   // If start height is given, we start from it
