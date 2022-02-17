@@ -36,8 +36,9 @@ function containsIbcPackets(txResponse: types.TxResponse): boolean {
   return txResponse.tx.body.messages
     .map((msg) => {
       return [
-        "/ibc.core.channel.v1.MsgRecvPacket",
-        "/ibc.core.channel.v1.MsgAcknowledgement",
+        "/ibc.core.channel.v1.MsgRecvPacket", // a successful inbound tx
+        "/ibc.core.channel.v1.MsgAcknowledgement", // a successful outbound tx
+        "/ibc.core.channel.v1.MsgTimeout", // a failed outbound tx
       ].includes(msg["@type"]);
     })
     .includes(true);

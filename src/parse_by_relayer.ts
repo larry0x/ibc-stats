@@ -116,10 +116,18 @@ function isNonRedundant(msg: types.Msg, log?: types.Log): boolean {
     }
   }
   // For an outbound package, we make sure it is non-redundant by checking whether is emits more
-  // than 2 events. Every `MsgAcknowledgement` emits at least two events, `acknowledge_packet` and
-  // `message`. Non-redundant ones additionally emits one or more events indicating the action
-  // being acknowledged, such as `fungible_token_packet` for ICS20 packets
-  else if (msg["@type"] === "/ibc.core.channel.v1.MsgAcknowledgement") {
+  // than 2 events
+  //
+  // Every `MsgAcknowledgement` emits at least two events, `acknowledge_packet` and `message`.
+  // Non-redundant ones additionally emits one or more events indicating the action being acknowledged,
+  // such as `fungible_token_packet` for ICS20 packets
+  //
+  // Same with the timeout message
+  else if (
+    ["/ibc.core.channel.v1.MsgAcknowledgement", "/ibc.core.channel.v1.MsgTimeout"].includes(
+      msg["@type"]
+    )
+  ) {
     if (log.events.length > 2) {
       return true;
     }
@@ -137,11 +145,6 @@ export function parseTxResponse(txResponse: types.TxResponse, relayerProfiles: R
       }
 
       const log = txResponse.logs.find((log) => log.msg_index === msgIndex);
-      // if (!log) {
-      //   throw new Error(
-      //     `cannot find log for msg! txhash: ${txResponse.txhash}, msg_index: ${msgIndex}`
-      //   );
-      // }
       if (isNonRedundant(msg, log)) {
         if (msg["@type"] === "/ibc.core.channel.v1.MsgRecvPacket") {
           relayerProfiles.incrementInboundPacketCount(signer);
