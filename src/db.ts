@@ -30,23 +30,14 @@ async function fetchTxsInBlock(
 }
 
 /**
- * @notice Return `true` if the transaction contains at least one `MsgRecvPacket` or `MsgAcknowledgement`;
- * return `false` if otherwise
+ * @notice Return `true` if the transaction contains at least one IBC-related message
  */
-function containsIbcPackets(txResponse: types.TxResponse): boolean {
-  return txResponse.tx.body.messages
-    .map((msg) => {
-      return [
-        "/ibc.core.channel.v1.MsgRecvPacket", // a successful inbound tx
-        "/ibc.core.channel.v1.MsgAcknowledgement", // a successful outbound tx
-        "/ibc.core.channel.v1.MsgTimeout", // a failed outbound tx
-      ].includes(msg["@type"]);
-    })
-    .includes(true);
+function containsIbcMsg(txResponse: types.TxResponse): boolean {
+  return txResponse.tx.body.messages.map((msg) => msg["@type"].includes("ibc")).includes(true);
 }
 
 /**
- * @notice Fetch all transactions containing IBC packets between two block heights
+ * @notice Fetch all transactions containing IBC-related messages between two block heights
  */
 export async function fetchIbcPacketTxs(
   endHeight: number,
@@ -94,7 +85,7 @@ export async function fetchIbcPacketTxs(
       const allTxs = await fetchTxsInBlock(height, url);
 
       // Retain only txs that contain `MsgRecvPacket` and `MsgAcknowledgement` messages
-      const txs = allTxs.filter((tx) => containsIbcPackets(tx));
+      const txs = allTxs.filter((tx) => containsIbcMsg(tx));
 
       // Add txs to database
       if (txs.length > 0) {
