@@ -1,4 +1,5 @@
 import axios from "axios";
+import chalk from "chalk";
 import { MongoClient } from "mongodb";
 import * as types from "./grpc_types";
 
@@ -54,19 +55,19 @@ export async function fetchIbcPacketTxs(
 ) {
   process.stdout.write("creating mongodb client... ");
   const client = new MongoClient(DEFAULT_MONGODB_URL);
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   process.stdout.write("connecting client...");
   await client.connect();
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   process.stdout.write("creating db...");
   const db = client.db("TerraIBCRelayerStats");
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   process.stdout.write("creating collections...");
   const col = db.collection<types.TxResponse>("txs");
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   // If start height is given, we start from it
   // If not, fetch the last tx in the database, and start from that block height + 1
@@ -84,8 +85,10 @@ export async function fetchIbcPacketTxs(
   try {
     for (let i = 1; i <= total; i++) {
       const height = lastHeight + i;
-      const percentage = Math.floor((100 * i) / total);
-      process.stdout.write(`${i}/${total} (${percentage}%) fetching txs at height ${height}... `);
+      const percent = Math.floor((100 * i) / total);
+      process.stdout.write(
+        `${chalk.yellow(i)}/${chalk.yellow(total)} (${percent}%) ${chalk.blue("height")}=${height} `
+      );
 
       // Download all txs at the height
       const allTxs = await fetchTxsInBlock(height, url);
@@ -98,13 +101,17 @@ export async function fetchIbcPacketTxs(
         await col.insertMany(txs);
       }
 
-      console.log(`done! number of txs: ${txs.length}`);
+      console.log(
+        chalk.green("done!"),
+        `${chalk.blue("txs_in_block")}=${txs.length}`,
+        `${chalk.blue("total_txs")}=${await col.countDocuments()}`
+      );
     }
   } catch (err) {
-    console.log("unrecoverable error!", err);
+    console.log(chalk.red("unrecoverable error!"), err);
   } finally {
     process.stdout.write("closing client... ");
     await client.close();
-    console.log("done!");
+    console.log(chalk.green("done!"));
   }
 }

@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import chalk from "chalk";
 import { MongoClient } from "mongodb";
 import * as types from "./grpc_types";
 
@@ -179,19 +180,19 @@ export function parseTxResponse(txResponse: types.TxResponse, relayerProfiles: R
 export async function ParseIbcMsgsByRelayer() {
   process.stdout.write("creating mongodb client... ");
   const client = new MongoClient(DEFAULT_MONGODB_URL);
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   process.stdout.write("connecting client...");
   await client.connect();
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   process.stdout.write("creating db...");
   const db = client.db("TerraIBCRelayerStats");
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   process.stdout.write("creating collections...");
   const col = db.collection<types.TxResponse>("txs");
-  console.log("done!");
+  console.log(chalk.green("done!"));
 
   const relayerProfiles = new RelayerProfiles();
   try {
@@ -208,11 +209,11 @@ export async function ParseIbcMsgsByRelayer() {
       }
     }
   } catch (err) {
-    console.log("unrecoverable error!", err);
+    console.log(chalk.red("unrecoverable error!"), err);
   } finally {
     process.stdout.write("closing client... ");
     await client.close();
-    console.log("done!");
+    console.log(chalk.green("done!"));
   }
   return relayerProfiles;
 }
