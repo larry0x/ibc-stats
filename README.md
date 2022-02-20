@@ -18,5 +18,5 @@ ts-node src/main.ts --start-height 4985676 --end-height 5000000 --grpc-gateway-u
 To run the script in background without interuption:
 
 ```bash
-nohup ts-node src/main.ts [flags] > fetch_txs.log &
+nohup ts-node src/main.ts fetch-txs [flags] > fetch_txs.log &
 ```
