@@ -78,7 +78,10 @@ export async function fetchIbcPacketTxs(
       const height = lastHeight + i;
       const percent = Math.floor((100 * i) / total);
       process.stdout.write(
-        `${chalk.yellow(i)}/${chalk.yellow(total)} (${percent}%) ${chalk.blue("height")}=${height} `
+        chalk.cyan(new Date().toISOString()) +
+          ` ${chalk.yellow(i)}/${chalk.yellow(total)}` +
+          ` (${percent}%)` +
+          ` ${chalk.blue("height")}=${height} `
       );
 
       // Download all txs at the height
